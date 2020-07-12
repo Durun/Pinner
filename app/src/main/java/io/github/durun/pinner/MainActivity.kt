@@ -9,10 +9,12 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
-import io.ktor.client.request.get
-import io.ktor.client.request.parameter
+import io.ktor.client.request.forms.MultiPartFormDataContent
+import io.ktor.client.request.forms.formData
+import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import kotlinx.coroutines.runBlocking
+import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -23,7 +25,7 @@ class MainActivity : AppCompatActivity() {
             Intent.ACTION_SEND -> {
                 if ("text/plain" == intent.type) {
                     handleSendText(intent) // Handle text being sent
-                }else if(intent.type?.startsWith("image/") == true) {
+                } else if (intent.type?.startsWith("image/") == true) {
                     handleSendImage(intent)
                 }
             }
@@ -32,20 +34,23 @@ class MainActivity : AppCompatActivity() {
             }
         }
     }
+
+    fun addCalendarEvent(title: String? = null, description: String? = null) {
+        val intent = Intent(Intent.ACTION_INSERT)
+            .setData(CalendarContract.Events.CONTENT_URI)
+        title?.let { intent.putExtra(CalendarContract.Events.TITLE, it) }
+        description?.let { intent.putExtra(CalendarContract.Events.DESCRIPTION, it) }
+        startActivity(intent)
+    }
+
     private fun handleSendText(intent: Intent) {
         intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
             // Update UI to reflect text being shared
             Log.d(TAG, "received: $it")
-
-            val intent = Intent(Intent.ACTION_INSERT)
-                .setData(CalendarContract.Events.CONTENT_URI)
-                .putExtra(CalendarContract.Events.TITLE, it.take(10))
-                .putExtra(CalendarContract.Events.DESCRIPTION, it)
-
-            Log.d(TAG, "intent: $intent")
-            startActivity(intent)
+            addCalendarEvent(title = it.take(16), description = it)
         }
     }
+
     private fun handleSendImage(intent: Intent) {
         (intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let {
             // Update UI to reflect image being shared
@@ -55,15 +60,23 @@ class MainActivity : AppCompatActivity() {
 
             HttpClient(Android).use {
                 val response = runBlocking {
-                    it.get<String>(
+                    it.post<String>(
                         scheme = "https",
-                        host = "api.gyazo.com",
-                        path = "/api/images"
+                        host = "api.imgur.com",
+                        path = "/3/image"
                     ) {
-                        parameter("access_token", "")
+                        headers {
+                            append("authorization", "Client-ID 9040b7b183b6471")
+                        }
+                        body = MultiPartFormDataContent(formData {
+                            append("image", bytes!!)
+                        })
                     }
                 }
                 Log.d(TAG, "response: $response")
+                val link = JSONObject(response).getJSONObject("data").getString("link")
+                Log.d(TAG, link)
+                addCalendarEvent(description = link)
             }
         }
     }

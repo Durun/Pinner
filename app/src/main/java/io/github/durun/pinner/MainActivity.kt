@@ -2,13 +2,17 @@ package io.github.durun.pinner
 
 import android.content.Intent
 import android.net.Uri
-import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Parcelable
 import android.provider.CalendarContract
-import android.provider.MediaStore
 import android.util.Log
-import androidx.core.net.toFile
+import androidx.appcompat.app.AppCompatActivity
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.android.Android
+import io.ktor.client.request.get
+import io.ktor.client.request.parameter
+import io.ktor.client.request.post
+import kotlinx.coroutines.runBlocking
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,6 +52,19 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "received: $it")
             val bytes = contentResolver.openInputStream(it)?.readBytes()
             Log.d(TAG, "bytes: ${bytes?.take(10)}")
+
+            HttpClient(Android).use {
+                val response = runBlocking {
+                    it.get<String>(
+                        scheme = "https",
+                        host = "api.gyazo.com",
+                        path = "/api/images"
+                    ) {
+                        parameter("access_token", "")
+                    }
+                }
+                Log.d(TAG, "response: $response")
+            }
         }
     }
 

@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Parcelable
+import androidx.core.net.toUri
 import java.io.InputStream
 
 internal fun Uri.resolveImage(context: Context): InputStream? {
@@ -11,6 +12,15 @@ internal fun Uri.resolveImage(context: Context): InputStream? {
 }
 
 internal fun Uri.asMyUrl(context: Context): Uri {
+    val input = context.contentResolver.openInputStream(this)
+    val file = context.cacheDir.resolve(this.hashCode().toString())
+    file.takeIf { it.exists() }?.delete()
+    file.createNewFile()
+    input?.copyTo(file.outputStream())
+    return file.toUri()
+}
+
+internal fun Intent.toCalendarEvent(context: Context): CalendarEvent? {
     return when (this.action) {
         Intent.ACTION_SEND -> {
             when (true) {
@@ -24,6 +34,7 @@ internal fun Uri.asMyUrl(context: Context): Uri {
                 this.type?.startsWith("image/") -> {
                     val imageUri =
                         (this.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)
+                            ?.asMyUrl(context)
                     CalendarEvent(
                         image = imageUri
                     )

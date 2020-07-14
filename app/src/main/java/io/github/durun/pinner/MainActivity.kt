@@ -9,7 +9,7 @@ import io.ktor.util.InternalAPI
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        private val TAG = MainActivity::class.java.simpleName
+        private val TAG = this::class.java.simpleName
         const val TRIM_SIZE_TITLE = 50
     }
 
@@ -17,7 +17,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val event = intent.toCalendarEvent()
+        val event = intent.toCalendarEvent(this)
         event?.let {
             val i = Intent(this, CalendarAddService::class.java)
                 .setAction(Intent.ACTION_SEND)

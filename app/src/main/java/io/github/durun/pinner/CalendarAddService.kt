@@ -15,7 +15,7 @@ import io.ktor.util.InternalAPI
 
 class CalendarAddService : Service() {
     companion object {
-        private val TAG = CalendarAddService::class.java.simpleName
+        private val TAG = this::class.java.simpleName
         private val CHANNEL_ID = TAG
     }
 
@@ -39,34 +39,34 @@ class CalendarAddService : Service() {
         progressNotification.notify()
 
         // call calendar
-        Thread(Runnable {
-            runCatching {
-                event.submit(context = this)
-            }.onFailure {
-                Log.d(TAG, it.toString())
-                val failNotification = createNotification().apply {
-                    val i = Intent(this@CalendarAddService, CalendarAddService::class.java)
-                        .putExtra(CalendarEvent.INTENT_KEY, event)
-                    second
-                        .setContentText("Failed.\nTap to retry.")
-                        .setContentIntent(
-                            PendingIntent.getService(
+        runCatching {
+            Log.d(TAG, "submitting event")
+            event.submit(context = this)
+        }.onFailure {
+            Log.d(TAG, it.toString())
+            val failNotification = createNotification().apply {
+                val i = Intent(this@CalendarAddService, CalendarAddService::class.java)
+                    .putExtra(CalendarEvent.INTENT_KEY, event)
+                second
+                    .setContentText("Failed.\nTap to retry.")
+                    .setContentIntent(
+                        PendingIntent.getService(
                                 this@CalendarAddService,
                                 0,
-                                i,
-                                PendingIntent.FLAG_UPDATE_CURRENT
-                            )
+                            i,
+                            PendingIntent.FLAG_UPDATE_CURRENT
                         )
-                }
-                failNotification.notify()
-            }.onSuccess {
-                NotificationManagerCompat.from(this)
-                    .cancelAll()
+                    )
             }
-            progressNotification.cancel()
-            stopSelf()
-        }).start()
-
+            failNotification.notify()
+        }.onSuccess {
+            NotificationManagerCompat.from(this)
+                .cancelAll()
+        }
+        cacheDir.deleteRecursively()
+        Log.d(TAG, "Deleted cache.")
+        progressNotification.cancel()
+        Log.d(TAG, "return.")
         return START_STICKY
     }
 

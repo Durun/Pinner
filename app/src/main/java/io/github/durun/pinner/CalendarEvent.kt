@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.CalendarContract
+import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
 import io.ktor.client.request.forms.MultiPartFormDataContent
@@ -29,6 +30,7 @@ class CalendarEvent(
         parcel.readParcelable(Uri::class.java.classLoader)
     )
     companion object {
+        private val TAG = this::class.java.simpleName
         const val INTENT_KEY = "CalendarEvent"
 
         @JvmField
@@ -50,6 +52,8 @@ class CalendarEvent(
         parcel.writeParcelable(image, flags)
     }
 
+    override fun toString(): String = "${this::class.simpleName} {$title, $description, $image}"
+
     /**
      * throws exception
      */
@@ -69,6 +73,7 @@ class CalendarEvent(
             .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         title?.let { intent.putExtra(CalendarContract.Events.TITLE, it) }
         description?.let { intent.putExtra(CalendarContract.Events.DESCRIPTION, it) }
+        Log.d(TAG, "launchCalendar: title=$title, desc=$description, $intent")
         this.startActivity(intent)
     }
 
@@ -78,6 +83,7 @@ class CalendarEvent(
     @InternalAPI
     private fun InputStream.uploadToImgur(): String {
         return HttpClient(Android).use {
+            Log.d(TAG, "uploading")
             val response = runBlocking {
                 it.post<String>(
                     scheme = "https",
@@ -92,6 +98,7 @@ class CalendarEvent(
                     })
                 }
             }
+            Log.d(TAG, "response: $response")
             JSONObject(response).getJSONObject("data").getString("link")
         }
     }

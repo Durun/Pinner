@@ -13,8 +13,10 @@ import io.ktor.client.request.forms.formData
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.util.InternalAPI
+import io.ktor.utils.io.streams.asInput
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
+import java.io.InputStream
 
 class CalendarEvent(
     private val title: String? = null,
@@ -74,7 +76,7 @@ class CalendarEvent(
      * throws exception
      */
     @InternalAPI
-    private fun ByteArray.uploadToImgur(): String {
+    private fun InputStream.uploadToImgur(): String {
         return HttpClient(Android).use {
             val response = runBlocking {
                 it.post<String>(
@@ -86,7 +88,7 @@ class CalendarEvent(
                         append("authorization", "Client-ID 9040b7b183b6471")
                     }
                     body = MultiPartFormDataContent(formData {
-                        append("image", this@uploadToImgur)
+                        appendInput("image") { this@uploadToImgur.asInput() }
                     })
                 }
             }

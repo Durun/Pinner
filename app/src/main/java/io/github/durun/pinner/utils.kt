@@ -4,12 +4,13 @@ import android.content.Context
 import android.content.Intent
 import android.net.Uri
 import android.os.Parcelable
+import java.io.InputStream
 
-internal fun Uri.resolveImage(context: Context): ByteArray? {
-    return context.contentResolver.openInputStream(this)?.readBytes()
+internal fun Uri.resolveImage(context: Context): InputStream? {
+    return context.contentResolver.openInputStream(this)
 }
 
-internal fun Intent.toCalendarEvent(): CalendarEvent? {
+internal fun Uri.asMyUrl(context: Context): Uri {
     return when (this.action) {
         Intent.ACTION_SEND -> {
             when (true) {

@@ -16,7 +16,7 @@ class CalendarAddService : Service() {
 
         Log.d(TAG, "received intent: $intent")
 
-        val event = intent?.getSerializableExtra(CalendarEvent.INTENT_KEY) as? CalendarEvent
+        val event = intent?.getParcelableExtra<CalendarEvent>(CalendarEvent.INTENT_KEY)
             ?: return START_STICKY
 
         Thread(

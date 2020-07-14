@@ -1,9 +1,7 @@
 package io.github.durun.pinner
 
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.os.Parcelable
 import androidx.appcompat.app.AppCompatActivity
 import io.ktor.util.InternalAPI
 

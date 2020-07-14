@@ -24,7 +24,7 @@ class CalendarAddService : Service() {
         Log.d(TAG, "received: $intent")
 
         val event = intent?.getParcelableExtra<CalendarEvent>(CalendarEvent.INTENT_KEY)
-            ?: return START_STICKY
+            ?: return super.onStartCommand(intent, flags, startId)
         Log.d(TAG, "calendarEvent: $event")
 
         // prepare notification
@@ -42,13 +42,9 @@ class CalendarAddService : Service() {
         runCatching {
             Log.d(TAG, "submitting event")
             val i = event.toIntent(context = this)
-            val name = i.resolveActivity(packageManager)
-            Log.d(TAG, "resolve name: $name")
-            if (name != null) {
-                Log.d(TAG, "launchCalendar: $intent")
-                Thread.sleep(10000)
-                startActivity(i)
-            }
+            Log.d(TAG, "launchCalendar: $i")
+            Thread.sleep(10000)
+            startActivity(i)
         }.onFailure {
             Log.d(TAG, it.toString())
             val failNotification = createNotification().apply {
@@ -74,7 +70,7 @@ class CalendarAddService : Service() {
         Log.d(TAG, "Deleted cache.")
         progressNotification.cancel()
         Log.d(TAG, "return.")
-        return START_STICKY
+        return super.onStartCommand(intent, flags, startId)
     }
 
     override fun onBind(intent: Intent?): IBinder? = null

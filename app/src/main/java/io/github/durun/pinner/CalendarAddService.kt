@@ -43,7 +43,7 @@ class CalendarAddService : Service() {
             Log.d(TAG, "submitting event")
             val i = event.toIntent(context = this)
             Log.d(TAG, "launchCalendar: $i")
-            Thread.sleep(10000)
+            // Thread.sleep(10000)
             startActivity(i)
         }.onFailure {
             Log.d(TAG, it.toString())

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
-import android.provider.CalendarContract
 import android.util.Log
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
@@ -65,17 +64,6 @@ class CalendarEvent(
             } ?: description.orEmpty().trim()
 
         return calendarIntentOf(title, description = text)
-    }
-
-
-    private fun calendarIntentOf(title: String? = null, description: String? = null): Intent {
-        val intent = Intent(Intent.ACTION_INSERT)
-            .setData(CalendarContract.Events.CONTENT_URI)
-            .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-        title?.let { intent.putExtra(CalendarContract.Events.TITLE, it) }
-        description?.let { intent.putExtra(CalendarContract.Events.DESCRIPTION, it) }
-        Log.d(TAG, "calendar: title=$title, desc=$description")
-        return intent
     }
 
     /**

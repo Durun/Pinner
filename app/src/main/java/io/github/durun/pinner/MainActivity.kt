@@ -9,7 +9,7 @@ import io.ktor.util.InternalAPI
 
 class MainActivity : AppCompatActivity() {
     companion object {
-        private val TAG = this::class.java.simpleName
+        private val TAG = MainActivity::class.java.simpleName
         const val TRIM_SIZE_TITLE = 50
     }
 

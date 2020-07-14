@@ -15,7 +15,7 @@ import io.ktor.util.InternalAPI
 
 class CalendarAddService : Service() {
     companion object {
-        private val TAG = this::class.java.simpleName
+        private val TAG = CalendarAddService::class.java.simpleName
         private val CHANNEL_ID = TAG
     }
 

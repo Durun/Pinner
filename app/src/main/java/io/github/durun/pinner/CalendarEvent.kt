@@ -30,7 +30,7 @@ class CalendarEvent(
         parcel.readParcelable(Uri::class.java.classLoader)
     )
     companion object {
-        private val TAG = this::class.java.simpleName
+        private val TAG = CalendarEvent::class.java.simpleName
         const val INTENT_KEY = "CalendarEvent"
 
         @JvmField

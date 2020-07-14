@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
                         val imageUri =
                             (this.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)
                         CalendarEvent(
-                            image = imageUri
+                            image = imageUri?.resolveImage()
                         )
                     }
                     else -> null
@@ -50,5 +50,9 @@ class MainActivity : AppCompatActivity() {
             }
             else -> null
         }
+    }
+
+    private fun Uri.resolveImage(): ByteArray? {
+        return contentResolver.openInputStream(this)?.readBytes()
     }
 }

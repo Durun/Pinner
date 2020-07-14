@@ -1,7 +1,9 @@
 package io.github.durun.pinner
 
 import android.app.Service
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.IBinder
 import android.util.Log
 import io.ktor.util.InternalAPI
@@ -22,7 +24,7 @@ class CalendarAddService : Service() {
         Thread(
             Runnable {
                 runCatching {
-                    event.submit(context = application)
+                    event.submit(context = this)
                 }.onFailure {
                     Log.d(TAG, it.toString())
                 }

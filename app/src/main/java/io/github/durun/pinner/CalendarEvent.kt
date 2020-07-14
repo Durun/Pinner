@@ -2,7 +2,6 @@ package io.github.durun.pinner
 
 import android.content.Context
 import android.content.Intent
-import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.CalendarContract
@@ -19,21 +18,20 @@ import org.json.JSONObject
 class CalendarEvent(
     private val title: String? = null,
     private val description: String? = null,
-    private val image: Uri? = null
+    private val image: ByteArray? = null
 ) : Parcelable {
     private constructor(parcel: Parcel) : this(
         parcel.readString(),
         parcel.readString(),
-        parcel.readParcelable(Uri::class.java.classLoader)
+        parcel.createByteArray()
     )
-
     companion object {
         const val INTENT_KEY = "CalendarEvent"
 
         @JvmField
         val CREATOR = object : Parcelable.Creator<CalendarEvent> {
-            override fun createFromParcel(source: Parcel): CalendarEvent {
-                return CalendarEvent(source)
+            override fun createFromParcel(parcel: Parcel): CalendarEvent {
+                return CalendarEvent(parcel)
             }
 
             override fun newArray(size: Int): Array<CalendarEvent?> {
@@ -42,13 +40,20 @@ class CalendarEvent(
         }
     }
 
+    override fun describeContents(): Int = 0
+    override fun writeToParcel(parcel: Parcel, flags: Int) {
+        parcel.writeString(title)
+        parcel.writeString(description)
+        parcel.writeByteArray(image)
+    }
+
+
     /**
      * throws exception
      */
     @InternalAPI
     fun submit(context: Context) {
         val text = image
-            ?.resolveImage(context)
             ?.uploadToImgur()?.plus("\n${description.orEmpty().trim()}")
             ?: description.orEmpty().trim()
         context.launchCalendar(title, description = text)
@@ -62,10 +67,6 @@ class CalendarEvent(
         title?.let { intent.putExtra(CalendarContract.Events.TITLE, it) }
         description?.let { intent.putExtra(CalendarContract.Events.DESCRIPTION, it) }
         this.startActivity(intent)
-    }
-
-    private fun Uri.resolveImage(context: Context): ByteArray? {
-        return context.contentResolver.openInputStream(this)?.readBytes()
     }
 
     /**
@@ -91,15 +92,4 @@ class CalendarEvent(
             JSONObject(response).getJSONObject("data").getString("link")
         }
     }
-
-    override fun writeToParcel(parcel: Parcel, flags: Int) {
-        parcel.writeString(title)
-        parcel.writeString(description)
-        parcel.writeParcelable(image, flags)
-    }
-
-    override fun describeContents(): Int {
-        return 0
-    }
-
 }

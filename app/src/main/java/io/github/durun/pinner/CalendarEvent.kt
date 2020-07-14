@@ -74,8 +74,13 @@ class CalendarEvent(
             .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         title?.let { intent.putExtra(CalendarContract.Events.TITLE, it) }
         description?.let { intent.putExtra(CalendarContract.Events.DESCRIPTION, it) }
-        Log.d(TAG, "launchCalendar: title=$title, desc=$description, $intent")
-        this.startActivity(intent)
+
+        val name = intent.resolveActivity(packageManager)
+        Log.d(TAG, "resolve name: $name")
+        if (name != null) {
+            Log.d(TAG, "launchCalendar: title=$title, desc=$description, $intent")
+            this.startActivity(intent)
+        }
     }
 
     /**

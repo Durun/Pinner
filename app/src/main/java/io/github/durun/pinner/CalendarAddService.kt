@@ -41,7 +41,14 @@ class CalendarAddService : Service() {
         // call calendar
         runCatching {
             Log.d(TAG, "submitting event")
-            event.submit(context = this)
+            val i = event.toIntent(context = this)
+            val name = i.resolveActivity(packageManager)
+            Log.d(TAG, "resolve name: $name")
+            if (name != null) {
+                Log.d(TAG, "launchCalendar: $intent")
+                Thread.sleep(10000)
+                startActivity(i)
+            }
         }.onFailure {
             Log.d(TAG, it.toString())
             val failNotification = createNotification().apply {

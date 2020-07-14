@@ -58,29 +58,24 @@ class CalendarEvent(
      * throws exception
      */
     @InternalAPI
-    fun submit(context: Context) {
+    fun toIntent(context: Context): Intent {
         val text = image
             ?.resolveImage(context)?.use { input ->
                 input.uploadToImgur() + "\n${description.orEmpty().trim()}"
             } ?: description.orEmpty().trim()
 
-        context.launchCalendar(title, description = text)
+        return calendarIntentOf(title, description = text)
     }
 
 
-    private fun Context.launchCalendar(title: String? = null, description: String? = null) {
+    private fun calendarIntentOf(title: String? = null, description: String? = null): Intent {
         val intent = Intent(Intent.ACTION_INSERT)
             .setData(CalendarContract.Events.CONTENT_URI)
             .setFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         title?.let { intent.putExtra(CalendarContract.Events.TITLE, it) }
         description?.let { intent.putExtra(CalendarContract.Events.DESCRIPTION, it) }
-
-        val name = intent.resolveActivity(packageManager)
-        Log.d(TAG, "resolve name: $name")
-        if (name != null) {
-            Log.d(TAG, "launchCalendar: title=$title, desc=$description, $intent")
-            this.startActivity(intent)
-        }
+        Log.d(TAG, "calendar: title=$title, desc=$description")
+        return intent
     }
 
     /**

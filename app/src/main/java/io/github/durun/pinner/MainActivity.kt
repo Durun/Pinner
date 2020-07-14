@@ -6,6 +6,7 @@ import android.os.Bundle
 import android.os.Parcelable
 import android.provider.CalendarContract
 import android.util.Log
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.android.Android
@@ -13,75 +14,55 @@ import io.ktor.client.request.forms.MultiPartFormDataContent
 import io.ktor.client.request.forms.formData
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
+import io.ktor.util.InternalAPI
 import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 
 class MainActivity : AppCompatActivity() {
+    companion object {
+        private val TAG = MainActivity::class.java.simpleName
+        const val TRIM_SIZE_TITLE = 50
+    }
+
+    @InternalAPI
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        when (intent?.action) {
+        val event = intent?.toCalendarEvent() ?: return finish()
+
+        runCatching {
+            event.submit(context = this)
+        }.onFailure {
+            Log.d(TAG, it.toString())
+            Toast.makeText(this, "Failure", Toast.LENGTH_SHORT).show()
+        }
+        finish()
+    }
+
+    private fun Intent.toCalendarEvent(): CalendarEvent? {
+        return when (this.action) {
             Intent.ACTION_SEND -> {
-                if ("text/plain" == intent.type) {
-                    handleSendText(intent) // Handle text being sent
-                } else if (intent.type?.startsWith("image/") == true) {
-                    handleSendImage(intent)
-                }
-            }
-            else -> {
-                // Handle other intents, such as being started from the home screen
-            }
-        }
-    }
-
-    fun addCalendarEvent(title: String? = null, description: String? = null) {
-        val intent = Intent(Intent.ACTION_INSERT)
-            .setData(CalendarContract.Events.CONTENT_URI)
-        title?.let { intent.putExtra(CalendarContract.Events.TITLE, it) }
-        description?.let { intent.putExtra(CalendarContract.Events.DESCRIPTION, it) }
-        startActivity(intent)
-    }
-
-    private fun handleSendText(intent: Intent) {
-        intent.getStringExtra(Intent.EXTRA_TEXT)?.let {
-            // Update UI to reflect text being shared
-            Log.d(TAG, "received: $it")
-            addCalendarEvent(title = it.take(16), description = it)
-        }
-    }
-
-    private fun handleSendImage(intent: Intent) {
-        (intent.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let {
-            // Update UI to reflect image being shared
-            Log.d(TAG, "received: $it")
-            val bytes = contentResolver.openInputStream(it)?.readBytes()
-            Log.d(TAG, "bytes: ${bytes?.take(10)}")
-
-            HttpClient(Android).use {
-                val response = runBlocking {
-                    it.post<String>(
-                        scheme = "https",
-                        host = "api.imgur.com",
-                        path = "/3/image"
-                    ) {
-                        headers {
-                            append("authorization", "Client-ID 9040b7b183b6471")
-                        }
-                        body = MultiPartFormDataContent(formData {
-                            append("image", bytes!!)
-                        })
+                when (true) {
+                    this.type?.startsWith("text/") -> {
+                        val text = this.getStringExtra(Intent.EXTRA_TEXT)
+                        CalendarEvent(
+                            title = text?.take(TRIM_SIZE_TITLE),
+                            description = text
+                        )
                     }
+                    this.type?.startsWith("image/") -> {
+                        val imageData = (this.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)?.let {
+                            contentResolver.openInputStream(it)?.readBytes()
+                        }
+                        CalendarEvent(
+                            imageData = imageData
+                        )
+                    }
+                    else -> null
                 }
-                Log.d(TAG, "response: $response")
-                val link = JSONObject(response).getJSONObject("data").getString("link")
-                Log.d(TAG, link)
-                addCalendarEvent(description = link)
             }
+            else -> null
         }
-    }
-
-    companion object {
-        private val TAG = MainActivity::class.java.simpleName
     }
 }

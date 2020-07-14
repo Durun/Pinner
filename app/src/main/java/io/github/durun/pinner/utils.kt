@@ -12,12 +12,13 @@ internal fun Uri.resolveImage(context: Context): InputStream? {
 }
 
 internal fun Uri.asMyUrl(context: Context): Uri {
-    val input = context.contentResolver.openInputStream(this)
-    val file = context.cacheDir.resolve(this.hashCode().toString())
-    file.takeIf { it.exists() }?.delete()
-    file.createNewFile()
-    input?.copyTo(file.outputStream())
-    return file.toUri()
+    return context.contentResolver.openInputStream(this).use { input ->
+        val file = context.cacheDir.resolve(this.hashCode().toString())
+        file.takeIf { it.exists() }?.delete()
+        file.createNewFile()
+        input?.copyTo(file.outputStream())
+        file.toUri()
+    }
 }
 
 internal fun Intent.toCalendarEvent(context: Context): CalendarEvent? {

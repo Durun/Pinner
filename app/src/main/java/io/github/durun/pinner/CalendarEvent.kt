@@ -60,9 +60,10 @@ class CalendarEvent(
     @InternalAPI
     fun submit(context: Context) {
         val text = image
-            ?.resolveImage(context)
-            ?.uploadToImgur()?.plus("\n${description.orEmpty().trim()}")
-            ?: description.orEmpty().trim()
+            ?.resolveImage(context)?.use { input ->
+                input.uploadToImgur() + "\n${description.orEmpty().trim()}"
+            } ?: description.orEmpty().trim()
+
         context.launchCalendar(title, description = text)
     }
 

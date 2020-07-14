@@ -2,6 +2,7 @@ package io.github.durun.pinner
 
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import android.os.Parcel
 import android.os.Parcelable
 import android.provider.CalendarContract
@@ -18,12 +19,12 @@ import org.json.JSONObject
 class CalendarEvent(
     private val title: String? = null,
     private val description: String? = null,
-    private val image: ByteArray? = null
+    private val image: Uri? = null
 ) : Parcelable {
-    private constructor(parcel: Parcel) : this(
+    constructor(parcel: Parcel) : this(
         parcel.readString(),
         parcel.readString(),
-        parcel.createByteArray()
+        parcel.readParcelable(Uri::class.java.classLoader)
     )
     companion object {
         const val INTENT_KEY = "CalendarEvent"
@@ -44,9 +45,8 @@ class CalendarEvent(
     override fun writeToParcel(parcel: Parcel, flags: Int) {
         parcel.writeString(title)
         parcel.writeString(description)
-        parcel.writeByteArray(image)
+        parcel.writeParcelable(image, flags)
     }
-
 
     /**
      * throws exception
@@ -54,6 +54,7 @@ class CalendarEvent(
     @InternalAPI
     fun submit(context: Context) {
         val text = image
+            ?.resolveImage(context)
             ?.uploadToImgur()?.plus("\n${description.orEmpty().trim()}")
             ?: description.orEmpty().trim()
         context.launchCalendar(title, description = text)

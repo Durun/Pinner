@@ -20,39 +20,10 @@ class MainActivity : AppCompatActivity() {
         val event = intent.toCalendarEvent()
         event?.let {
             val i = Intent(this, CalendarAddService::class.java)
+                .setAction(Intent.ACTION_SEND)
                 .putExtra(CalendarEvent.INTENT_KEY, it)
             startService(i)
         }
-
         finish()
-    }
-
-    private fun Intent.toCalendarEvent(): CalendarEvent? {
-        return when (this.action) {
-            Intent.ACTION_SEND -> {
-                when (true) {
-                    this.type?.startsWith("text/") -> {
-                        val text = this.getStringExtra(Intent.EXTRA_TEXT)
-                        CalendarEvent(
-                            title = text?.take(TRIM_SIZE_TITLE),
-                            description = text
-                        )
-                    }
-                    this.type?.startsWith("image/") -> {
-                        val imageUri =
-                            (this.getParcelableExtra<Parcelable>(Intent.EXTRA_STREAM) as? Uri)
-                        CalendarEvent(
-                            image = imageUri?.resolveImage()
-                        )
-                    }
-                    else -> null
-                }
-            }
-            else -> null
-        }
-    }
-
-    private fun Uri.resolveImage(): ByteArray? {
-        return contentResolver.openInputStream(this)?.readBytes()
     }
 }

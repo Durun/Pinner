@@ -79,7 +79,7 @@ class CalendarAddService : Service() {
     var notificationId = 0
     private fun createNotification(): Pair<Int, NotificationCompat.Builder> {
         return (notificationId++) to NotificationCompat.Builder(this, CHANNEL_ID).apply {
-            setSmallIcon(R.mipmap.ic_launcher_foreground)
+            setSmallIcon(R.mipmap.pinner_foreground)
             setContentTitle("Pinner")
             priority = NotificationCompat.PRIORITY_LOW
         }

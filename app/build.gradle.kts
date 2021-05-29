@@ -1,7 +1,6 @@
 plugins {
     id("com.android.application")
     id("kotlin-android")
-    kotlin("android.extensions")
 }
 
 dependencies {
@@ -22,7 +21,6 @@ dependencies {
 
 android {
     compileSdkVersion(30)
-    buildToolsVersion("29.0.3")
 
     kotlinOptions {
         jvmTarget = "1.8"
@@ -37,9 +35,12 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    buildFeatures {
+        viewBinding = true
+    }
+
     buildTypes {
         getByName("release") {
-            minifyEnabled(false)
             proguardFiles.apply {
                 add(getDefaultProguardFile("proguard-android-optimize.txt"))
                 add(file("proguard-rules.pro"))
